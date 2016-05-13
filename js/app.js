@@ -1,39 +1,82 @@
-"use strict"; 
-var magicNumber;
-var input;
-var guessedNums;
-var lastGuess = "";
-var counter;
+var guessedNums = [];
+var counter = 0;
+var lastGuess = '';
 
-/*--- Functions for app ---*/
+var max = 100;
+var min = 1;
+var magicNumber = Math.floor(Math.random() * (max - min + 1)) + min;
 
-// Function to come up with magic number.
-function getMagicNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+// Render new game when user click on "+ New Game" link.
+$('a.new').click(function() {
+  var max = 100;
+  var min = 1;
+  var magicNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+  $("#count").html("<span>0</span>");
+  counter = 0;
+  $("#guessList").html("");
+  $("#feedback").html("Make your guess!");
+  guessedNums = [];
+  lastGuess = "";
+  console.log("magicNumber: " + magicNumber);
+  $('div.timer').remove();
+  $('#userGuess').val("").focus();
+});
 
-/* Function to find difference between user input and magic number. See how close or far away they are from guessing right. */
-function getDiff(input, magicNumber) {
-  console.log("guessedNums: " + guessedNums);
-  // See if input has already been entered.
-  for (var i = 0; i < guessedNums.length; i++) {
-    if (input === guessedNums[i] && guessedNums != null) {
-      alert("You've already guessed that number. Try another!");
-    } else {
-      logGuesses();
-    }
+//New Guess
+$('input#guessButton.button').click(function() {
+
+  //Set the input value to the number entered
+  var input = $('#userGuess').val();
+  //Display the magicNumber
+  console.log("magicNumber: " + magicNumber);
+
+  //VALIDATION
+    // See if input has already been entered.
+      for (var i = 0; i < guessedNums.length; i++) {
+        if (input === guessedNums[i] && guessedNums != null) {
+          $("#feedback").html("You've already guessed that number. Try another!");
+          return;
+        };
+       };
+
+     //Check if the value is actually a number
+        if (isNaN(input)) {
+          $("#feedback").html("Please input only numbers");
+          return;
+        };
+
+    // Check the value is between 1 and 100
+      if (input <= 1 || input >= 100) {
+        $("#feedback").html("Please enter a number between 1 and 100.");
+        return;
+      };
+
+  //stopwatch
+  if(guessedNums.length <= 0){   
+    console.log('first guess');
+    $('.game').append("<div class='timer'><div id='counter' class='counter'>00:00:00</div></div>");
+    $('#counter').stopwatch().stopwatch('start');
   };
-  
-  if (input <= 1 || input >= 100) {
-    $("#feedback").html("Please enter a number between 1 and 100.");
-  } else {
+
+  //Add number to the guessedList below
+    if (input != magicNumber && (input >= 1 && input <= 100)) {
+      $("#guessList").append("<li>" + input + "</li>");
+    };
+
+    // Add the number guessed to an array
     guessedNums.push(input);
+    console.log("guessedNumbers: "+guessedNums);
+
+    // Get the last guess (minus 2 because we already added the guessed number to the array)
+    var lastGuess = guessedNums[guessedNums.length - 2];
+    console.log("LastGuess: " +lastGuess);
+
     // Variables to get difference between current input and magicNum.
     var smallerNum = Math.min(input, magicNumber);
     var largerNum = Math.max(input, magicNumber);
     var diff = largerNum - smallerNum;
     console.log("diff: " + diff);
-    console.log("lastGuess: " + lastGuess);
+
     // Variables to get diff between the last guessed number and magicNum.
     var lastGuessSmallerNum = Math.min(lastGuess, magicNumber);
     var lastGuessLargerNum = Math.max(lastGuess, magicNumber);
@@ -42,6 +85,7 @@ function getDiff(input, magicNumber) {
    // Give feedback on guess.
     if (diff == 0) {
       $("#feedback").html("Sizzling! You got it!");
+      $("#celebrate").fadeIn(400).fadeOut(400).fadeIn(400).fadeOut(400).fadeIn(400).fadeOut(400);
     } else if (diff >= 1 && diff < 10) { 
       if (diff < lastGuessDiff && lastGuess != "") {
         $("#feedback").html("HOT! You're closing in! Your guess is closer now.");
@@ -90,80 +134,199 @@ function getDiff(input, magicNumber) {
       } else {
         $("#feedback").html("Freezing cold!");
       }
-    }
+    
   };
-  console.log("input: " + input);
-  // $("#userGuess").val("").focus();
-};
 
-/* If there is a difference between user guess and magic number, then log their guess in #guessList and increment guess count (#count) by 1. */
-function logGuesses(input, magicNumber) {
-  if (input != magicNumber && (input >= 1 && input <= 100)) {
-    $("#guessList").append("<li>" + input + "</li>");
-  }
-};
-
-// Every time the user submits input, increment guess count until they get the magicNumber.
-function incrementGuessCount(input, magicNumber) {
+  // Increment counter
   if (input != magicNumber && (input >= 1 && input <= 100)) {
     counter++;
     $("#count").html("<span>" + counter + "</span>");
-  }
-};
+  };
 
-// Render new game when user click on "+ New Game" link.
-function newGame() {
-  $("#count").html("<span>0</span>");
-  counter = 0;
-  $("#guessList").html("");
-  $("#feedback").html("Make your guess!");
-  guessedNums = [];
-  magicNumber = getMagicNumber(1, 100);
-  lastGuess = "";
-  console.log("magicNumber: " + magicNumber);
-  $("#guessButton").click(function(e) {
-    e.preventDefault();
-    input = $("#userGuess").val();
-    // if (input == '') {
-    //   alert("Please enter a number first.");
-    // } else {
-      getDiff(input, magicNumber);
-      // console.log(getDiff);
-      logGuesses(input, magicNumber);
-      // console.log(logGuesses);
-      incrementGuessCount(input, magicNumber);
-      // console.log(incrementGuessCount);
-    // }
-  });
-};
+  // clear out last guess and focus in
+  $('#userGuess').val("").focus();
 
-$(document).ready(function(){
-  /*--- Display information modal box ---*/
-	$(".what").click(function(){
-  	$(".overlay").fadeIn(1000);
-	});
-
-	/*--- Hide information modal box ---*/
-	$("a.close").click(function(){
-		$(".overlay").fadeOut(1000);
-	});
-
-  newGame();
-
-  // To run when the user enters a number.
-  // $("#guessButton").click(function(e) {
-  //   e.preventDefault();
-  //   var input = $("#userGuess").val();
-  //   if (input == '') {
-  //     alert("Please enter a number first.");
-  //   } else {
-  //     getDiff(input, magicNumber);
-  //     logGuesses(input, magicNumber);
-  //     incrementGuessCount(input, magicNumber);
-  //   }
-  // });
-
-  $("a.new").click(function() {
-    newGame();
-  });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// stopwatch
+(function( $ ){
+
+    function incrementer(ct, increment) {
+        return function() { ct+=increment; return ct; };
+    }
+    
+    function pad2(number) {
+         return (number < 10 ? '0' : '') + number;
+    }
+
+    function defaultFormatMilliseconds(millis) {
+        var x, seconds, minutes, hours;
+        x = millis / 1000;
+        seconds = Math.floor(x % 60);
+        x /= 60;
+        minutes = Math.floor(x % 60);
+        x /= 60;
+        hours = Math.floor(x % 24);
+        // x /= 24;
+        // days = Math.floor(x);
+        return [pad2(hours), pad2(minutes), pad2(seconds)].join(':');
+    }
+
+    //NOTE: This is a the 'lazy func def' pattern described at http://michaux.ca/articles/lazy-function-definition-pattern
+    function formatMilliseconds(millis, data) {
+        // Use jintervals if available, else default formatter
+        var formatter;
+        if (typeof jintervals == 'function') {
+            formatter = function(millis, data){return jintervals(millis/1000, data.format);};
+        } else {
+            formatter = defaultFormatMilliseconds;
+        }
+        formatMilliseconds = function(millis, data) {
+            return formatter(millis, data);
+        };
+        return formatMilliseconds(millis, data);
+    }
+
+    var methods = {
+        
+        init: function(options) {
+            var defaults = {
+                updateInterval: 1000,
+                startTime: 0,
+                format: '{HH}:{MM}:{SS}',
+                formatter: formatMilliseconds
+            };
+            
+            // if (options) { $.extend(settings, options); }
+            
+            return this.each(function() {
+                var $this = $(this),
+                    data = $this.data('stopwatch');
+                
+                // If the plugin hasn't been initialized yet
+                if (!data) {
+                    // Setup the stopwatch data
+                    var settings = $.extend({}, defaults, options);
+                    data = settings;
+                    data.active = false;
+                    data.target = $this;
+                    data.elapsed = settings.startTime;
+                    // create counter
+                    data.incrementer = incrementer(data.startTime, data.updateInterval);
+                    data.tick_function = function() {
+                        var millis = data.incrementer();
+                        data.elapsed = millis;
+                        data.target.trigger('tick.stopwatch', [millis]);
+                        data.target.stopwatch('render');
+                    };
+                    $this.data('stopwatch', data);
+                }
+                
+            });
+        },
+        
+        start: function() {
+            return this.each(function() {
+                var $this = $(this),
+                    data = $this.data('stopwatch');
+                // Mark as active
+                data.active = true;
+                data.timerID = setInterval(data.tick_function, data.updateInterval);
+                $this.data('stopwatch', data);
+            });
+        },
+        
+        stop: function() {
+            return this.each(function() {
+                var $this = $(this),
+                    data = $this.data('stopwatch');
+                clearInterval(data.timerID);
+                data.active = false;
+                $this.data('stopwatch', data);
+            });
+        },
+        
+        destroy: function() {
+            return this.each(function(){
+                var $this = $(this),
+                    data = $this.data('stopwatch');
+                $this.stopwatch('stop').unbind('.stopwatch').removeData('stopwatch');
+            });
+        },
+        
+        render: function() {
+            var $this = $(this),
+                data = $this.data('stopwatch');
+            $this.html(data.formatter(data.elapsed, data));
+        },
+
+        getTime: function() {
+            var $this = $(this),
+                data = $this.data('stopwatch');
+            return data.elapsed;
+        },
+        
+        toggle: function() {
+            return this.each(function() {
+                var $this = $(this);
+                var data = $this.data('stopwatch');
+                if (data.active) {
+                    $this.stopwatch('stop');
+                } else {
+                    $this.stopwatch('start');
+                }
+            });
+        },
+        
+        reset: function() {
+            return this.each(function() {
+                var $this = $(this);
+                    data = $this.data('stopwatch');
+                data.incrementer = incrementer(data.startTime, data.updateInterval);
+                data.elapsed = data.startTime;
+                $this.data('stopwatch', data);
+            });
+        }
+    };
+    
+    
+    // Define the function
+    $.fn.stopwatch = function( method ) {
+        if (methods[method]) {
+            return methods[method].apply( this, Array.prototype.slice.call( arguments, 1 ));
+        } else if (typeof method === 'object' || !method) {
+            return methods.init.apply(this, arguments);
+        } else {
+            $.error( 'Method ' +  method + ' does not exist on jQuery.stopwatch' );
+        }
+    };
+
+})( jQuery );
